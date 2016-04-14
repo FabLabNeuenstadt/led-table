@@ -9,8 +9,9 @@ BrickBreaker::BrickBreaker(size_t width, size_t height)
     ball_x(0), ball_y(1),
     prev_ball_x(1), prev_ball_y(0),
     vel_x(1), vel_y(1),
-    powerup_active(0),
-    
+    powerup_type(0),
+    powerup_percent(5),
+    lifes_max(5), paddle_min(2), paddle_max(6),
     pause(1),
     rows_count(5),
 
@@ -31,12 +32,15 @@ void BrickBreaker::varInit()
 	block_colors[3] = 0x00FFFF;
 	block_colors[4] = 0x0000FF;
 	
-	ball_x = random(0,width);
-	if (random(0,1)) {
+	ball_x = random(0,width+1);
+	if (random(2)) {
 		vel_x = 1;
 	} else {
 		vel_x = -1;
 	}
+	
+	randomSeed(analogRead(0));
+
 }
 
 void BrickBreaker::blocksInit()
@@ -93,6 +97,32 @@ void BrickBreaker::run(unsigned long curTime)
 		vel_y = -1;
 	}
 	
+	// Did we just catch a powerup?
+	if (powerup_type && (powerup_y == 0) && (powerup_x > paddle_pos) && (powerup_x < paddle_pos + paddle_width)) {
+		switch(powerup_type) {
+			case 1:
+				// Grow
+				if (paddle_width < paddle_max) {
+					paddle_width++;
+				}
+				break;
+			case 2:
+				// Shrink
+				if (paddle_width > paddle_min) {
+					paddle_width--;
+				}
+				break;
+			case 3:
+				// Extra Life
+				if (lifes < lifes_max) {
+					lifes++;
+				}
+				break;
+		}
+		rumbleUntil = currentTime + 100;
+		powerup_type = 0;
+	}
+	
 	// If moving down and at the bottom, check for paddle hit
 	if ((ball_y == 1) && (vel_y < 0)) {
 		next_x = ball_x + vel_x;
@@ -121,7 +151,11 @@ void BrickBreaker::run(unsigned long curTime)
 			ended = true;
 			return;
 		}
-		//Reset Ball
+		//Reset Ball and paddle
+		paddle_width = 3;
+		if ((paddle_pos + paddle_width - 1) > width) {
+			paddle_pos = width - paddle_width + 1;
+		}
 		ball_x = paddle_pos + int(paddle_width / 2);
 		vel_x = 1;
 		vel_y = 1;
@@ -142,6 +176,7 @@ void BrickBreaker::run(unsigned long curTime)
 			score++;
 			hit_something = 1;
 			vel_y = -vel_y;
+			randomPowerup(ball_x, next_y);
 		}
 		if (*(blocks + (ball_y - offset) * (width+1) + next_x)) {
 			// Hit a block by the side
@@ -150,6 +185,7 @@ void BrickBreaker::run(unsigned long curTime)
 			score++;
 			hit_something = 1;
 			vel_x = -vel_x;
+			randomPowerup(next_x, ball_y);
 		}
 		if ((!hit_something) && (*(blocks + (next_y - offset) * (width+1) + next_x))) {
 			// Hit a block straight ahead
@@ -159,12 +195,66 @@ void BrickBreaker::run(unsigned long curTime)
 			hit_something = 1;
 			vel_x = -vel_x;
 			vel_y = -vel_y;
+			randomPowerup(next_x, next_y);
+		}
+	}
+	
+	// Move powerup
+	if (powerup_type) {
+		if (powerup_y == 0) {
+			powerup_type = 0;
+		} else {
+			powerup_y--;
 		}
 	}
 	
 	// Move ball
 	ball_x += vel_x;
 	ball_y += vel_y;
+	
+}
+
+void BrickBreaker::randomPowerup(int x, int y)
+{
+	if (!powerup_type && (random(100) < powerup_percent)) {
+		powerup_x = x;
+		powerup_y = y-1;
+		
+		if (lifes >= lifes_max) {
+			// No more extra lifes
+			if (paddle_width <= paddle_min) {
+				// No more shrinkers
+				powerup_type = 1;
+			} else if (paddle_width >= paddle_max) {
+				// No more growers
+				powerup_type = 2;
+			} else {
+				if (random(2)) {
+					powerup_type = 1;
+				} else {
+					powerup_type = 2;
+				}
+			}
+		} else {
+			if (paddle_width <= paddle_min) {
+				// No more shrinkers
+				if (random(2)) {
+					powerup_type = 1;
+				} else {
+					powerup_type = 3;
+				}
+			} else if (paddle_width >= paddle_max) {
+				// No more growers
+				if (random(2)) {
+					powerup_type = 2;
+				} else {
+					powerup_type = 3;
+				}
+			} else {
+				powerup_type = random(3)+1;
+			}
+		}
+	}
 }
 
 void BrickBreaker::render(Canvas &canvas)
@@ -180,8 +270,26 @@ void BrickBreaker::render(Canvas &canvas)
 	}
   
 	//Paint lifes
-	for (int if= 0; i < lifes; i++) {
+	for (int i = 0; i < lifes; i++) {
 		canvas.setPixel(i*2, height, COLOR_GREY);
+	}
+  
+	//Paint powerup
+	if (powerup_type) {
+		switch(powerup_type) {
+			case 1:
+				// Make paddle bigger => green
+				canvas.setPixel(powerup_x, powerup_y, COLOR_GREEN);
+				break;
+			case 2:
+				// Make paddle smaller => red
+				canvas.setPixel(powerup_x, powerup_y, COLOR_RED);
+				break;
+			case 3:
+				// Extra life => grey
+				canvas.setPixel(powerup_x, powerup_y, COLOR_GREY);
+				break;
+		}
 	}
   
 	//Paint blocks

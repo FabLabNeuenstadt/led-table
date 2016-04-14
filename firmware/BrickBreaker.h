@@ -5,7 +5,10 @@
 class BrickBreaker : public App {
 private:
   int lifes;
+  int lifes_max;
   int paddle_width;
+  int paddle_min;
+  int paddle_max;
   int paddle_pos;
   int score;
   
@@ -16,11 +19,11 @@ private:
   int prev_ball_y;
   int vel_y;
 
-  int powerup_active;
   int powerup_x;
   int powerup_y;
-  int powerup_type; // 1 => bigger, 2 => smaller, 3 => extra life
-
+  int powerup_type; // 0 => none on board, 1 => bigger, 2 => smaller, 3 => extra life
+  int powerup_percent;
+  
   int pause;
 
   unsigned int rows_count;
@@ -37,7 +40,8 @@ private:
 
   void varInit();
   void blocksInit();
-
+  void randomPowerup(int x, int y);
+  
 public:
   BrickBreaker(size_t width, size_t height);
   virtual void handleInput(Input &input);
