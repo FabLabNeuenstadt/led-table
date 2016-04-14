@@ -4,7 +4,7 @@
 
 class BrickBreaker : public App {
 private:
-  int lives;
+  int lifes;
   int paddle_width;
   int paddle_pos;
   int score;
@@ -15,6 +15,11 @@ private:
   int ball_y;
   int prev_ball_y;
   int vel_y;
+
+  int powerup_active;
+  int powerup_x;
+  int powerup_y;
+  int powerup_type; // 1 => bigger, 2 => smaller, 3 => extra life
 
   int pause;
 

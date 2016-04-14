@@ -2,13 +2,14 @@
 
 BrickBreaker::BrickBreaker(size_t width, size_t height)
   : App(width, height), 
-    lives(3),
+    lifes(3),
     paddle_width(3),
     paddle_pos(0),
     score(0),
     ball_x(0), ball_y(1),
     prev_ball_x(1), prev_ball_y(0),
     vel_x(1), vel_y(1),
+    powerup_active(0),
     
     pause(1),
     rows_count(5),
@@ -104,8 +105,8 @@ void BrickBreaker::run(unsigned long curTime)
 	
 	// Check for death
 	if (ball_y == 0) {
-		lives--;
-		if (lives < 0) {
+		lifes--;
+		if (lifes < 0) {
 			//TODO: Game over, show score
 
 /*			char curSelectionText[100];
@@ -178,8 +179,8 @@ void BrickBreaker::render(Canvas &canvas)
 		canvas.setPixel(i, 0, COLOR_WHITE);
 	}
   
-	//Paint lives
-	for (int i = 0; i < lives; i++) {
+	//Paint lifes
+	for (int if= 0; i < lifes; i++) {
 		canvas.setPixel(i*2, height, COLOR_GREY);
 	}
   
