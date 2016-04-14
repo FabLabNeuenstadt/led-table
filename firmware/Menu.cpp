@@ -79,6 +79,10 @@ void Menu::render(Canvas& canvas)
       curSelectionText = "5 Stars";
       curSelectionTextLength = 7;
       break;
+    case 6:
+      curSelectionText = "6 BrickBreaker";
+      curSelectionTextLength = 14;
+      break;
   }
   boolean finished = canvas.printText(curSelectionText, curSelectionTextLength, textPosition, (height-8)/2, COLOR_RED);
   if(finished) {
@@ -106,6 +110,9 @@ void Menu::controlFlow(AppController& appController)
         break;
       case 5:
         appController.startStars();
+        break;
+      case 6:
+        appController.startBrickBreaker();
         break;
     }
   }

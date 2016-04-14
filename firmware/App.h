@@ -40,6 +40,7 @@ public:
   void startTetris();
   void startSnake();
   void startPong();
+  void startBrickBreaker();
 };
 
 #endif
