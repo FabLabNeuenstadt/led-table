@@ -274,6 +274,16 @@ void BrickBreaker::render(Canvas &canvas)
 		canvas.setPixel(i*2, height, COLOR_GREY);
 	}
   
+  	//Paint blocks
+	for (int y = height - 1 - rows_count; y < height - 1; y++) {
+		int offset = height - 1 - rows_count;
+		for (int x = 0; x < width + 1; x++) {
+			if (*(blocks + (y - offset) * (width+1) + x)) {
+				canvas.setPixel(x,y,block_colors[(y - offset) % 5]);
+			}
+		}		
+	}
+	
 	//Paint powerup
 	if (powerup_type) {
 		switch(powerup_type) {
@@ -291,16 +301,7 @@ void BrickBreaker::render(Canvas &canvas)
 				break;
 		}
 	}
-  
-	//Paint blocks
-	for (int y = height - 1 - rows_count; y < height - 1; y++) {
-		int offset = height - 1 - rows_count;
-		for (int x = 0; x < width + 1; x++) {
-			if (*(blocks + (y - offset) * (width+1) + x)) {
-				canvas.setPixel(x,y,block_colors[(y - offset) % 5]);
-			}
-		}		
-	}
+
 }
 
 void BrickBreaker::handleInput(Input &input)
