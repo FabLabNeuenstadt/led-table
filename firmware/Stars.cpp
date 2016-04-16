@@ -29,7 +29,7 @@ void Stars::run(unsigned long curTime)
   static int wait = 80;
   if(curTime > prevUpdateTime + wait) 
   {
-    if ((curTime - prevStarsCreationTime) > 1800)
+    if ((curTime - prevStarsCreationTime) > 500)
     {
       createNewStars = true;
       prevStarsCreationTime = curTime;
@@ -55,12 +55,20 @@ void Stars::render(Canvas& canvas)
         int x = 0, y = 0;
         //Generate random positions until valid
         while (!positionOk){
+/*
           x = random(width);
           y = random(height);
+*/
           if (canvas.getPixel(x,y) == 0)
           {
             positionOk = true;
           }
+          if (x<width) {
+			  x++;
+		  } else {
+			  x = 0;
+			  y++;
+		  }
         }
         canvas.setPixel(x, y, COLOR_WHITE);
       }
