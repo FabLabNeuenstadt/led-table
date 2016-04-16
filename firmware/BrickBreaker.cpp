@@ -6,16 +6,16 @@ BrickBreaker::BrickBreaker(size_t width, size_t height)
     paddle_width(3),
     paddle_pos(0),
     score(0),
-    ball_x(0), ball_y(1),
+    ball_x(0), ball_y(height - 2),
     prev_ball_x(1), prev_ball_y(0),
-    vel_x(1), vel_y(1),
+    vel_x(1), vel_y(-1),
     powerup_type(0),
     powerup_percent(5),
     lifes_max(5), paddle_min(2), paddle_max(6),
     pause(1),
     rows_count(5),
 
-    prevUpdateTime(0), gameSpeed(180)
+    prevUpdateTime(0), gameSpeed(380)
 {
 	varInit();
 	blocksInit();
@@ -77,28 +77,28 @@ void BrickBreaker::run(unsigned long curTime)
 		blocksInit();
 
 		ball_x = random(0,width);
-		ball_y = 1;
+		ball_y = height - 2;
 		if (random(0,1)) {
 			vel_x = 1;
 		} else {
 			vel_x = -1;
 		}
-		
+		vel_y = -1;
 	}
 	
 	// Check for bounds left, right, up
 	if ((ball_x) == 0 && (vel_x < 0)) {
 		vel_x = 1;
 	}
-	if ((ball_x == width) && (vel_x > 0)) {
+	if ((ball_x == width - 1) && (vel_x > 0)) {
 		vel_x = -1;
 	}
-	if ((ball_y == height) && (vel_y > 0)) {
-		vel_y = -1;
+	if ((ball_y == 0) && (vel_y < 0)) {
+		vel_y = 1;
 	}
 	
 	// Did we just catch a powerup?
-	if (powerup_type && (powerup_y == 0) && (powerup_x > paddle_pos) && (powerup_x < paddle_pos + paddle_width)) {
+	if (powerup_type && (powerup_y == height - 1) && (powerup_x >= paddle_pos) && (powerup_x < paddle_pos + paddle_width)) {
 		switch(powerup_type) {
 			case 1:
 				// Grow
@@ -124,17 +124,16 @@ void BrickBreaker::run(unsigned long curTime)
 	}
 	
 	// If moving down and at the bottom, check for paddle hit
-	if ((ball_y == 1) && (vel_y < 0)) {
-		next_x = ball_x + vel_x;
-		if ((next_x > paddle_pos) && (next_x < paddle_pos + paddle_width)) {
+	if ((ball_y == height - 2) && (vel_y > 0)) {
+		if ((ball_x >= paddle_pos) && (ball_x < paddle_pos + paddle_width)) {
 			// Hit!
-			vel_y = 1;
+			vel_y = -1;
 			rumbleUntil = currentTime + 100;
 		}
 	}
 	
 	// Check for death
-	if (ball_y == 0) {
+	if (ball_y == height - 1) {
 		lifes--;
 		if (lifes < 0) {
 			//TODO: Game over, show score
@@ -157,39 +156,46 @@ void BrickBreaker::run(unsigned long curTime)
 			paddle_pos = width - paddle_width + 1;
 		}
 		ball_x = paddle_pos + int(paddle_width / 2);
-		vel_x = 1;
-		vel_y = 1;
+    ball_y = height - 2;
+    if (random(0,1)) {
+      vel_x = 1;
+    } else {
+      vel_x = -1;
+    }
+		vel_y = -1;
 		pause = 1;
+    return;
 	}
 	
 	// Check for hit brick(s)
 	next_x = ball_x + vel_x;
 	next_y = ball_y + vel_y;
-	if ((next_y > height - 2 - rows_count) && (next_y < height - 1)) {
+  
+	if ((next_y > 1) && (next_y < 1 + rows_count + 1)) {
 		// We might hit something
-		int offset = height - 1 - rows_count;
+		int offset = 2;
 		int hit_something = 0;
-		if (*(blocks + (next_y - offset) * (width+1) + ball_x)) {
-			// Hit a block above
-			*(blocks + (next_y - offset) * (width+1) + ball_x) = 0;
+		if (*(blocks + ((next_y - offset) * width) + ball_x)) {
+			// Hit a block above/below
+			*(blocks + ((next_y - offset) * width) + ball_x) = 0;
 			blocks_cnt--;
 			score++;
 			hit_something = 1;
 			vel_y = -vel_y;
 			randomPowerup(ball_x, next_y);
 		}
-		if (*(blocks + (ball_y - offset) * (width+1) + next_x)) {
+		if (*(blocks + ((ball_y - offset) * width) + next_x)) {
 			// Hit a block by the side
-			*(blocks + (ball_y - offset) * (width+1) + next_x) = 0;
+			*(blocks + ((ball_y - offset) * width) + next_x) = 0;
 			blocks_cnt--;
 			score++;
 			hit_something = 1;
 			vel_x = -vel_x;
 			randomPowerup(next_x, ball_y);
 		}
-		if ((!hit_something) && (*(blocks + (next_y - offset) * (width+1) + next_x))) {
+		if ((!hit_something) && (*(blocks + ((next_y - offset) * width) + next_x))) {
 			// Hit a block straight ahead
-			*(blocks + (next_y - offset) * (width+1) + next_x) = 0;
+			*(blocks + ((next_y - offset) * width) + next_x) = 0;
 			blocks_cnt--;
 			score++;
 			hit_something = 1;
@@ -201,10 +207,10 @@ void BrickBreaker::run(unsigned long curTime)
 	
 	// Move powerup
 	if (powerup_type) {
-		if (powerup_y == 0) {
+		if (powerup_y == height - 1) {
 			powerup_type = 0;
 		} else {
-			powerup_y--;
+			powerup_y++;
 		}
 	}
 	
@@ -266,19 +272,19 @@ void BrickBreaker::render(Canvas &canvas)
 
 	//Paint paddle
 	for (int i = paddle_pos; i < paddle_pos + paddle_width; i++) {
-		canvas.setPixel(i, 0, COLOR_WHITE);
+		canvas.setPixel(i, height - 1, COLOR_WHITE);
 	}
   
 	//Paint lifes
 	for (int i = 0; i < lifes; i++) {
-		canvas.setPixel(i*2, height, COLOR_GREY);
+		canvas.setPixel(i*2, 0, COLOR_GREY);
 	}
   
   	//Paint blocks
-	for (int y = height - 1 - rows_count; y < height - 1; y++) {
-		int offset = height - 1 - rows_count;
-		for (int x = 0; x < width + 1; x++) {
-			if (*(blocks + (y - offset) * (width+1) + x)) {
+	for (int y = 2; y < 2 + rows_count; y++) {
+		int offset = 2;
+		for (int x = 0; x < width; x++) {
+			if (*(blocks + ((y - offset) * width) + x)) {
 				canvas.setPixel(x,y,block_colors[(y - offset) % 5]);
 			}
 		}		
@@ -312,7 +318,7 @@ void BrickBreaker::handleInput(Input &input)
 		ended = true;
 	}
 	if (((curControl == BTN_LEFT) || (curControl == BTN_RIGHT)) && 
-		((curControl != lastControl) || (currentTime - prevControlTime > int(gameSpeed/2)))) {
+		((curControl != lastControl) || (currentTime - prevControlTime > int(gameSpeed/4)))) {
 		if (curControl == BTN_LEFT) {
 			pause = 0;
 			if (paddle_pos > 0) {
@@ -320,12 +326,12 @@ void BrickBreaker::handleInput(Input &input)
 			}
 		} else {
 			pause = 0;
-			if ((paddle_pos + paddle_width - 1) < width) {
+			if ((paddle_pos + paddle_width) < (width)) {
 				paddle_pos++;
 			}
 		}
-		prevControlTime = currentTime;
 	}
+  prevControlTime = currentTime;
 	lastControl = curControl;
 	
   if(currentTime < rumbleUntil) 
