@@ -1,5 +1,5 @@
-#define TOWER // Uncomment if compiling for tower
-//#define TABLE // Uncomment if compiling for table
+//#define TOWER // Uncomment if compiling for tower
+#define TABLE // Uncomment if compiling for table
 
 #if defined(TOWER)
   #define CONCURRENT_APPS 4
@@ -38,7 +38,7 @@
 
   #define HORIZONTAL_LEFT_TO_RIGHT_AND_REVERSE
 
-  #define LED_COLOR_LAYOUT WS2811_GRB
+  #define LED_COLOR_LAYOUT WS2811_RGB
   
 #else 
 
