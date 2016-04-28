@@ -32,6 +32,7 @@ public:
   Input(int controllerIndex);
   void init();
   input_t read();
+  input_t readReal();
   boolean getL1R1Status();
   void startRumble();
   void stopRumble();

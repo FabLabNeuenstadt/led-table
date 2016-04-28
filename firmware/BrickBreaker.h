@@ -1,6 +1,6 @@
 #include "App.h"
 
-#define  COLOR_GREY       0x808080
+#define  COLOR_GREY       0x202020
 
 class BrickBreaker : public App {
 private:
@@ -23,6 +23,11 @@ private:
   int powerup_y;
   int powerup_type; // 0 => none on board, 1 => bigger, 2 => smaller, 3 => extra life
   int powerup_percent;
+  int powerup_wait;
+  int powerup_blink_freq;
+  int powerup_blink_count;
+  
+  float speedup;
   
   int pause;
 
@@ -35,6 +40,9 @@ private:
   unsigned long prevUpdateTime;
   unsigned long prevControlTime;
   int gameSpeed;
+  int gameSpeed_start;
+  int base_level;
+  int level;
   input_t lastControl;
   unsigned long rumbleUntil;
 

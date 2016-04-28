@@ -66,6 +66,38 @@ void Input::init()
   }
 }
 
+uint8_t Input::readReal(){
+  xboxController[controllerIndex].setLedOn(ledEnums[controllerIndex % MAX_LEDS]);
+  curControl = BTN_NONE;
+  if (xboxController[controllerIndex].Xbox360Connected) {
+    if (xboxController[controllerIndex].getButtonPress(B) || xboxController[controllerIndex].getButtonPress(RIGHT)) 
+    {
+      curControl = BTN_RIGHT;
+    }
+    else if (xboxController[controllerIndex].getButtonPress(X) || xboxController[controllerIndex].getButtonPress(LEFT))
+    {
+      curControl = BTN_LEFT;
+    }
+    else if (xboxController[controllerIndex].getButtonPress(Y) || xboxController[controllerIndex].getButtonPress(UP))
+    {
+      curControl = BTN_UP;
+    }
+    else if (xboxController[controllerIndex].getButtonPress(A) || xboxController[controllerIndex].getButtonPress(DOWN))
+    {
+      curControl = BTN_DOWN;
+    }
+    else if (xboxController[controllerIndex].getButtonPress(START) || xboxController[controllerIndex].getButtonPress(XBOX))
+    {
+      curControl = BTN_START;
+    }
+      
+    if (curControl == prevControl && curControl == BTN_START)
+      curControl = BTN_NONE;
+    else
+      prevControl = curControl;
+  }
+  return curControl;
+}
 
 uint8_t Input::read(){
   xboxController[controllerIndex].setLedOn(ledEnums[controllerIndex % MAX_LEDS]);
