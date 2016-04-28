@@ -231,9 +231,11 @@ void BrickBreaker::run(unsigned long curTime)
         // Check bounds
         if ((ball_x == 0) && (vel_x < 0)) {
           vel_x = 1;
+          next_x = ball_x + vel_x;
         }
         if ((ball_x == width - 1) && (vel_x > 0)) {
           vel_x = -1;
+          next_x = ball_x + vel_x;
         }
 
 		    if ((inRange(((ball_y - offset) * width) + next_x)) && (*(blocks + ((ball_y - offset) * width) + next_x))) {
@@ -254,9 +256,11 @@ void BrickBreaker::run(unsigned long curTime)
         // Check bounds
         if ((ball_x == 0) && (vel_x < 0)) {
           vel_x = 1;
+          next_x = ball_x + vel_x;
         }
         if ((ball_x == width - 1) && (vel_x > 0)) {
           vel_x = -1;
+          next_x = ball_x + vel_x;
         }
 
 		    if (/*(!hit_something) &&*/ (inRange(((next_y - offset) * width) + next_x)) && (*(blocks + ((next_y - offset) * width) + next_x))) {
@@ -278,9 +282,11 @@ void BrickBreaker::run(unsigned long curTime)
         // Check bounds
         if ((ball_x == 0) && (vel_x < 0)) {
           vel_x = 1;
+          next_x = ball_x + vel_x;
         }
         if ((ball_x == width - 1) && (vel_x > 0)) {
           vel_x = -1;
+          next_x = ball_x + vel_x;
         }
       }
 
