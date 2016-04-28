@@ -87,11 +87,12 @@ void Pong::render(Canvas &canvas)
 
 void Pong::handleInput(Input &input)
 {
-  input_t curControl = input.read();
+  input_t curControl = input.readReal();
   if (curControl == BTN_START){
     ended = true;
   }
-  if (curControl != BTN_NONE && curControl != lastControl)
+  if (curControl != BTN_NONE &&
+      ((curControl != lastControl) || (currentTime - prevControlTime > int(gameSpeed/4.0))))
   {
     if(curControl == BTN_DOWN && positionPlayerLeft + (PLAYER_HEIGHT-1) / 2 < height-1)
     {
@@ -101,8 +102,9 @@ void Pong::handleInput(Input &input)
     {
       --positionPlayerLeft;
     }
+	prevControlTime = currentTime;
+    lastControl = curControl;
   }
-  lastControl = curControl;
   
   if(currentTime < rumbleUntil) 
   {

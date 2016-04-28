@@ -23,6 +23,7 @@ private:
   
   unsigned long currentTime;
   unsigned long prevUpdateTime;
+  unsigned long prevControlTime;
   unsigned long lastAutoPlayerMoveTime;
   unsigned long rumbleUntil;
   unsigned long waitUntil;
