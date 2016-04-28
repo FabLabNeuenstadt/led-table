@@ -436,7 +436,8 @@ void BrickBreaker::handleInput(Input &input)
 
     if (((curControl == BTN_LEFT) || (curControl == BTN_RIGHT)) &&
             ((curControl != lastControl) || (currentTime - prevControlTime > int(gameSpeed/4.0)))) {
-
+	// We only ever get here if there is a change in button presses
+	// or if the button is pressed for longer than (gameSpeed/4) ms.
         if (curControl == BTN_LEFT) {
             pause = 0;
             if (paddle_pos > 0) {
