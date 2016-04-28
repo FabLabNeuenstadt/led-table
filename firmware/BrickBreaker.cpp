@@ -1,4 +1,5 @@
 #include "BrickBreaker.h"
+#include "Arduino.h"
 
 BrickBreaker::BrickBreaker(size_t width, size_t height)
   : App(width, height), 
