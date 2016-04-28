@@ -67,6 +67,10 @@ void Input::init()
 }
 
 uint8_t Input::readReal(){
+  /* Return the pressed button even if it's held down
+   * The exception is the start button, because it's only used to return
+   * to the menu
+   */
   xboxController[controllerIndex].setLedOn(ledEnums[controllerIndex % MAX_LEDS]);
   curControl = BTN_NONE;
   if (xboxController[controllerIndex].Xbox360Connected) {
