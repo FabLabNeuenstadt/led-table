@@ -41,6 +41,7 @@ private:
   void varInit();
   void blocksInit();
   void randomPowerup(int x, int y);
+  bool inRange(int x);
   
 public:
   BrickBreaker(size_t width, size_t height);

@@ -45,10 +45,14 @@ void BrickBreaker::varInit()
 
 void BrickBreaker::blocksInit()
 {
-	for (int i = 0; i < rows_count * (width+1); i++) {
+	for (int i = 0; i < rows_count * width; i++) {
 		*(blocks + i) = 1;
 	}
-	blocks_cnt = rows_count * (width+1);
+	blocks_cnt = rows_count * width;
+}
+
+bool BrickBreaker::inRange(int x) {
+	return ((x >= 0) && (x < (rows_count * width)));
 }
 
 void BrickBreaker::run(unsigned long curTime)
@@ -84,17 +88,6 @@ void BrickBreaker::run(unsigned long curTime)
 			vel_x = -1;
 		}
 		vel_y = -1;
-	}
-	
-	// Check for bounds left, right, up
-	if ((ball_x) == 0 && (vel_x < 0)) {
-		vel_x = 1;
-	}
-	if ((ball_x == width - 1) && (vel_x > 0)) {
-		vel_x = -1;
-	}
-	if ((ball_y == 0) && (vel_y < 0)) {
-		vel_y = 1;
 	}
 	
 	// Did we just catch a powerup?
@@ -156,15 +149,15 @@ void BrickBreaker::run(unsigned long curTime)
 			paddle_pos = width - paddle_width + 1;
 		}
 		ball_x = paddle_pos + int(paddle_width / 2);
-    ball_y = height - 2;
-    if (random(0,1)) {
-      vel_x = 1;
-    } else {
-      vel_x = -1;
-    }
+		ball_y = height - 2;
+		if (random(0,1)) {
+			vel_x = 1;
+		} else {
+			vel_x = -1;
+		}
 		vel_y = -1;
 		pause = 1;
-    return;
+		return;
 	}
 	
 	// Check for hit brick(s)
@@ -175,35 +168,51 @@ void BrickBreaker::run(unsigned long curTime)
 		// We might hit something
 		int offset = 2;
 		int hit_something = 0;
-		if (*(blocks + ((next_y - offset) * width) + ball_x)) {
+		if ((inRange(((next_y - offset) * width) + ball_x)) && (*(blocks + ((next_y - offset) * width) + ball_x))) {
 			// Hit a block above/below
 			*(blocks + ((next_y - offset) * width) + ball_x) = 0;
 			blocks_cnt--;
 			score++;
 			hit_something = 1;
 			vel_y = -vel_y;
+			next_y = ball_y + vel_y;
 			randomPowerup(ball_x, next_y);
 		}
-		if (*(blocks + ((ball_y - offset) * width) + next_x)) {
+		if ((inRange(((ball_y - offset) * width) + next_x)) && (*(blocks + ((ball_y - offset) * width) + next_x))) {
 			// Hit a block by the side
 			*(blocks + ((ball_y - offset) * width) + next_x) = 0;
 			blocks_cnt--;
 			score++;
 			hit_something = 1;
 			vel_x = -vel_x;
+			next_x = ball_x + vel_x;
 			randomPowerup(next_x, ball_y);
 		}
-		if ((!hit_something) && (*(blocks + ((next_y - offset) * width) + next_x))) {
+		if ((!hit_something) && (inRange(((next_y - offset) * width) + next_x)) && (*(blocks + ((next_y - offset) * width) + next_x))) {
 			// Hit a block straight ahead
 			*(blocks + ((next_y - offset) * width) + next_x) = 0;
 			blocks_cnt--;
 			score++;
 			hit_something = 1;
 			vel_x = -vel_x;
+			next_x = ball_x + vel_x;
 			vel_y = -vel_y;
+			next_y = ball_y + vel_y;
 			randomPowerup(next_x, next_y);
 		}
 	}
+
+	// Check for bounds left, right, up
+	if ((ball_x == 0) && (vel_x < 0)) {
+		vel_x = 1;
+	}
+	if ((ball_x == width - 1) && (vel_x > 0)) {
+		vel_x = -1;
+	}
+	if ((ball_y == 0) && (vel_y < 0)) {
+		vel_y = 1;
+	}
+
 	
 	// Move powerup
 	if (powerup_type) {
