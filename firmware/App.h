@@ -41,6 +41,7 @@ public:
   void startSnake();
   void startPong();
   void startBrickBreaker();
+  void startSpectrumAnalyzer();
 };
 
 #endif
