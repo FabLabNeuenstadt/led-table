@@ -11,7 +11,7 @@
 #include "SnakeGame.h"
 
 #define MINSELECTION  1
-#define MAXSELECTION  6
+#define MAXSELECTION  7
 
 #define TEXTSPEED  110
 
@@ -83,6 +83,10 @@ void Menu::render(Canvas& canvas)
       curSelectionText = "6 BrickBreaker";
       curSelectionTextLength = 14;
       break;
+    case 7:
+      curSelectionText = "7 SpectrumAnalyzer";
+      curSelectionTextLength = 18;
+      break;
   }
   boolean finished = canvas.printText(curSelectionText, curSelectionTextLength, textPosition, (height-8)/2, COLOR_RED);
   if(finished) {
@@ -113,6 +117,9 @@ void Menu::controlFlow(AppController& appController)
         break;
       case 6:
         appController.startBrickBreaker();
+        break;
+      case 7:
+        appController.startSpectrumAnalyzer();
         break;
     }
   }
