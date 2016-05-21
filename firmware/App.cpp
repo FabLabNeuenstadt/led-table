@@ -8,6 +8,7 @@
 #include "TetrisGame.h"
 #include "Pong.h"
 #include "BrickBreaker.h"
+#include "SpectrumAnalyzer.h"
 
 App::App(size_t width, size_t height) : width(width), height(height),ended(false)
 {
@@ -98,6 +99,12 @@ void AppController::startPong()
 void AppController::startBrickBreaker()
 {
   App* newApp = new BrickBreaker(width, height);
+  setNewApp(newApp);
+}
+
+void AppController::startSpectrumAnalyzer()
+{
+  App* newApp = new SpectrumAnalyzer(width, height);
   setNewApp(newApp);
 }
 
