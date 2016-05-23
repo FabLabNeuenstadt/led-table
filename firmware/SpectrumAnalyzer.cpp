@@ -11,21 +11,17 @@
 //
 // This example code is in the public domain.
 
-
+#include "SpectrumAnalyzer.h"
 #include <Audio.h>
 #include <Wire.h>
 #include <SD.h>
 #include <SPI.h>
 
+/*
 // The display size and color to use
 const unsigned int matrix_width = 12;
 const unsigned int matrix_height = 12;
-const unsigned int myColor = 0x400020;
 
-// These parameters adjust the vertical thresholds
-const float maxLevel = 0.5;      // 1.0 = max, lower is more "sensitive"
-const float dynamicRange = 40.0; // total range to display, in decibels
-const float linearBlend = 0.3;   // useful range is 0 to 0.7
 
 // OctoWS2811 objects
 const int ledsPerPin = matrix_width * matrix_height / 8;
@@ -33,40 +29,47 @@ DMAMEM int displayMemory[ledsPerPin*6];
 int drawingMemory[ledsPerPin*6];
 const int config = WS2811_GRB | WS2811_800kHz;
 OctoWS2811 leds(ledsPerPin, displayMemory, drawingMemory, config);
-
 // Audio library objects
 AudioInputAnalog         adc1(A3);       //xy=99,55
 AudioAnalyzeFFT1024      fft;            //xy=265,75
 AudioConnection          patchCord1(adc1, fft);
 
+*/
 
-// This array holds the volume level (0 to 1.0) for each
-// vertical pixel to turn on.  Computed in setup() using
-// the 3 parameters above.
-float thresholdVertical[matrix_height];
 
-// This array specifies how many of the FFT frequency bin
-// to use for each horizontal pixel.  Because humans hear
-// in octaves and FFT bins are linear, the low frequencies
-// use a small number of bins, higher frequencies use more.
-int frequencyBinsHorizontal[matrix_width] = {
-   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-   2,  2,  2,  2,  2,  2,  2,  2,  2,  3,
-   3,  3,  3,  3,  4,  4,  4,  4,  4,  5,
-   5,  5,  6,  6,  6,  7,  7,  7,  8,  8,
-   9,  9, 10, 10, 11, 12, 12, 13, 14, 15,
+SpectrumAnalyzer::SpectrumAnalyzer(size_t width, size_t height)
+    : App(width, height)
+{
+
+  int helperArray[60] = {
+  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,
+  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,
+  5,  5,  6,  6,  6,  7,  7,  7,  8,  8,
+  9,  9, 10, 10, 11, 12, 12, 13, 14, 15,
   15, 16, 17, 18, 19, 20, 22, 23, 24, 25
-};
+  };
 
 
-
-// Run setup once
-void setup() {
+	thresholdVertical = new float [height];
+	frequencyBinsHorizontal = new int [width];
+	for (int i=0; i < width; i++) {
+	  frequencyBinsHorizontal[i] = helperArray[i];
+	}
+	adc1 = new AudioInputAnalog(A3);
+	patchCord1 = new AudioConnection(*adc1, *fft);
   // the audio library needs to be given memory to start working
   AudioMemory(12);
 
   // compute the vertical thresholds before starting
   computeVerticalLevels();
+}
+
+
+/*
+
+// Run setup once
+void setup() {
 
   // turn on the display
   leds.begin();
@@ -85,32 +88,41 @@ unsigned int xy(unsigned int x, unsigned int y) {
     return y * matrix_width + matrix_width - 1 - x;
   }
 }
+*/
 
-// Run repetitively
-void loop() {
+void SpectrumAnalyzer::run(unsigned long curtime) {
+}
+
+void SpectrumAnalyzer::render(Canvas &canvas) {
   unsigned int x, y, freqBin;
   float level;
-
-  if (fft.available()) {
+  if (fft->available()) {
+	  canvas.clear();
     // freqBin counts which FFT frequency data has been used,
     // starting at low frequency
     freqBin = 0;
 
-    for (x=0; x < matrix_width; x++) {
+    for (x=0; x < width; x++) {
       // get the volume for each horizontal pixel position
-      level = fft.read(freqBin, freqBin + frequencyBinsHorizontal[x] - 1);
+      level = fft->read(freqBin, freqBin + frequencyBinsHorizontal[x] - 1);
 
       // uncomment to see the spectrum in Arduino's Serial Monitor
       // Serial.print(level);
       // Serial.print("  ");
 
-      for (y=0; y < matrix_height; y++) {
+      for (y=0; y < height; y++) {
         // for each vertical pixel, check if above the threshold
         // and turn the LED on or off
         if (level >= thresholdVertical[y]) {
-          leds.setPixel(xy(x, y), myColor);
+			if (y < 3) {
+				canvas.setPixel(x, y, COLOR_GREEN);
+			} else if (y < 8) {
+				canvas.setPixel(x, y, COLOR_YELLOW);
+			} else {
+				canvas.setPixel(x, y, COLOR_RED);
+			}
         } else {
-          leds.setPixel(xy(x, y), 0x000000);
+          //canvas.setPixel(x, y, 0x000000);
         }
       }
       // increment the frequency bin count, so we display
@@ -118,19 +130,26 @@ void loop() {
       freqBin = freqBin + frequencyBinsHorizontal[x];
     }
     // after all pixels set, show them all at the same instant
-    leds.show();
+    //leds.show();
     // Serial.println();
   }
+  
 }
 
+void SpectrumAnalyzer::handleInput(Input &input) {
+    input_t curControl = input.readReal();
+    if (curControl == BTN_START) {
+        ended = true;
+    }
+}
 
 // Run once from setup, the compute the vertical levels
-void computeVerticalLevels() {
+void SpectrumAnalyzer::computeVerticalLevels() {
   unsigned int y;
   float n, logLevel, linearLevel;
 
-  for (y=0; y < matrix_height; y++) {
-    n = (float)y / (float)(matrix_height - 1);
+  for (y=0; y < height; y++) {
+    n = (float)y / (float)(height - 1);
     logLevel = pow10f(n * -1.0 * (dynamicRange / 20.0));
     linearLevel = 1.0 - n;
     linearLevel = linearLevel * linearBlend;
