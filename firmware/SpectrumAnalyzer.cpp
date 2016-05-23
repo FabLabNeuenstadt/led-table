@@ -115,11 +115,11 @@ void SpectrumAnalyzer::render(Canvas &canvas) {
         // and turn the LED on or off
         if (level >= thresholdVertical[y]) {
 			if (y < 3) {
-				canvas.setPixel(x, y, COLOR_GREEN);
+				canvas.setPixel(x, height - y - 1, COLOR_GREEN);
 			} else if (y < 8) {
-				canvas.setPixel(x, y, COLOR_YELLOW);
+				canvas.setPixel(x, height - y - 1, COLOR_YELLOW);
 			} else {
-				canvas.setPixel(x, y, COLOR_RED);
+				canvas.setPixel(x, height - y - 1, COLOR_RED);
 			}
         } else {
           //canvas.setPixel(x, y, 0x000000);
